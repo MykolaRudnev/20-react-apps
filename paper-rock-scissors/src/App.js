@@ -7,9 +7,9 @@ import { useState } from "react";
 import { useEffect } from "react";
 
 const choices = [
-  { id: 1, name: "rock", component: Rock },
-  { id: 2, name: "paper", component: Paper },
-  { id: 3, name: "scissors", component: Scissors },
+  { id: 1, name: "rock", component: Rock, lossesTo: 2 },
+  { id: 2, name: "paper", component: Paper, lossesTo: 3 },
+  { id: 3, name: "scissors", component: Scissors, lossesTo: 1 },
 ];
 
 //1. handle wins + losses
@@ -24,16 +24,30 @@ export default function App() {
   const [gameState, setGameState] = useState(null); // win, lose, draw
 
   useEffect(() => {
-    const randomChoice = choices[Math.floor(Math.random() * choices.length)];
-    setComputerChoice(randomChoice);
+    retstartGame();
   }, []);
 
+  function retstartGame() {
+    setGameState(null);
+    setUserChoice(null);
+    const randomChoice = choices[Math.floor(Math.random() * choices.length)];
+    setComputerChoice(randomChoice);
+  }
   function handleUserChoice(choice) {
     const chosenChoice = choices.find((c) => c.id === choice);
     setUserChoice(chosenChoice);
 
     //determine the winner
     setGameState("win");
+    if (chosenChoice.lossesTo === computerChoice.id) {
+      setLosses((losses) => losses + 1);
+      setGameState("lose");
+    } else if (computerChoice.lossesTo === chosenChoice.id) {
+      setWins((wins) => wins + 1);
+      setGameState("win");
+    } else if (computerChoice.id === chosenChoice.id) {
+      setGameState("draw");
+    }
   }
 
   function renderComponent(choice) {
@@ -63,13 +77,21 @@ export default function App() {
 
       {/* the popup to show win/loss/draw */}
       {gameState && (
-        <div className={`game-state ${gameState}`}>
+        <div
+          className={`game-state ${gameState}`}
+          onClick={() => retstartGame()}
+        >
           <div>
             <div className="game-state-content">
               <p>{renderComponent(userChoice)}</p>
-              <p>you won!</p>
+              {/* <p>you {gameState}!</p> */}
+              {gameState === "win" && <p>Congrats! You won!</p>}
+              {gameState === "lose" && <p>Sorry! You lost!</p>}
+              {gameState === "draw" && <p>You drew!</p>}
               <p>{renderComponent(computerChoice)}</p>
             </div>
+
+            <button onClick={() => retstartGame()}>play Again</button>
           </div>
         </div>
       )}
